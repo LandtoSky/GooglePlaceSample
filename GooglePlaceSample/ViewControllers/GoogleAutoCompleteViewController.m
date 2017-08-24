@@ -106,14 +106,17 @@
     
     searchQuery = [[SPGooglePlacesAutocompleteQuery alloc] init];
     searchQuery.sensor = NO;
-    float latitude = [[commonUtils getUserDefault:@"currentLatitude"] floatValue];
-    float longitude = [[commonUtils getUserDefault:@"currentLongitude"] floatValue];
+//    float latitude = [[commonUtils getUserDefault:@"currentLatitude"] floatValue];
+//    float longitude = [[commonUtils getUserDefault:@"currentLongitude"] floatValue];
+    float latitude = 55.697860f;
+    float longitude = 12.585933f;
+    
     NSLog(@"latitude %f, longitude %f",latitude,longitude);
 	
     searchQuery.radius = SEARCH_RADIUS;
     searchQuery.location=CLLocationCoordinate2DMake(latitude, longitude);
-    searchQuery.key=@"AIzaSyC3sh3JwL25G58I_f6QwDRiqsc5m04Ade0"; //kGooglePlaceAPIKey for GooglePlaceSample
-    searchQuery.types=SPPlaceTypeInvalid;
+    searchQuery.key = kGoogleAPIKey; //kGooglePlaceAPIKey for GooglePlaceSample
+//    searchQuery.types= SPPlaceTypeInvalid;
     shouldBeginEditing = YES;
     self.searchDisplayController.searchBar.placeholder = @"Search For Place";
 
@@ -166,10 +169,26 @@
 
     UITableViewCell *cell = (UITableViewCell *)[tableView cellForRowAtIndexPath:indexPath];
     CLLocation *location = [[CLLocation alloc] init];
-      
     
-    [self.GoogleAutoCompleteViewDelegate GoogleAutoCompleteViewControllerDismissedWithAddress:cell.textLabel.text AndLocation:location ForTextObj:self.textObjTag];
-    [self dismissViewControllerAnimated:YES completion:nil];
+    SPGooglePlacesAutocompletePlace *place = [self placeAtIndexPath:indexPath];
+    [place resolveToPlacemark:^(CLPlacemark *placemark, NSString *addressString, NSError *error) {
+        if (error) {
+            SPPresentAlertViewWithErrorAndTitle(error, @"Could not map selected Place");
+        } else if (placemark) {
+            
+            [self.GoogleAutoCompleteViewDelegate
+             GoogleAutoCompleteViewControllerDismissedWithAddress: addressString
+             AndLocation:placemark.location ForTextObj:self.textObjTag
+             ];
+            
+            [self dismissViewControllerAnimated:YES completion:nil];
+//            [self dismissSearchControllerWhileStayingActive];
+//            [self.searchDisplayController.searchResultsTableView deselectRowAtIndexPath:indexPath animated:NO];
+        }
+    }];
+  
+    
+ 
     return;
     
 //    SPGooglePlacesAutocompletePlace *place = [self placeAtIndexPath:indexPath];
